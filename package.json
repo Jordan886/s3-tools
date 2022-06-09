@@ -1,0 +1,27 @@
+{
+  "name": "s3-tools",
+  "version": "0.1.0",
+  "description": "s3 utility command-line",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jordan886/s3-tools.git"
+  },
+  "author": "Giordano Corradini",
+  "license": "ISC",
+  "devDependencies": {
+    "caxa": "^2.1.0",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.25.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.105.0",
+    "commander": "^9.3.0",
+    "config": "^3.3.6",
+    "json2csv": "^5.0.7"
+  }
+}
