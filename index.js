@@ -33,23 +33,9 @@ async function start () {
     .action(async function (option) {
       res = await S3Action.deletedObjects(program.opts(), option, option.saveDetails ? true : false )
       console.log(res.Summary)
-      if (option.saveDetails) {
-        const save_path_deleted = path.join(option.saveDetails, 'bucket_deleted.csv')
-        const save_path_versioned = path.join(option.saveDetails, 'bucket_versioned.csv')
-        try {
-          const csv_deleted = parse(res.Details.DeleteMarkers)
-          fs.writeFileSync(save_path_deleted, csv_deleted )
-          console.log('saved file in', save_path_deleted)
-          const csv_versioned = parse(res.Details.Versions)
-          fs.writeFileSync(save_path_versioned, csv_versioned )
-          console.log('saved file in', save_path_versioned)
-        } catch (error) {
-          console.error(error.message)
-        }
-      }
     })
-  program.parse()
-  
+
+  program.parse()  
 }
 
 start()
