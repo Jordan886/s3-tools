@@ -1,7 +1,8 @@
 const fs  = require('fs')
 const path = require('path')
 const { parse } = require('json2csv');
-const { S3Client, ListBucketsCommand, GetBucketVersioningCommand, ListObjectVersionsCommand } = require('@aws-sdk/client-s3')
+const { S3Client, ListBucketsCommand, GetBucketVersioningCommand, ListObjectVersionsCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3')
+const { count_versions } = require('./functions')
 
 const S3Action = {
   init: async function (common_options) {
@@ -24,13 +25,13 @@ const S3Action = {
   },
   bucketVersioning: async function (common_options, command_options) {
     const client = await this.init(common_options)
-    console.log('gettings stats for bucket ', command_options.bucket)
+    console.log('getting info for bucket ', command_options.bucket)
     command_result = await client.send(new GetBucketVersioningCommand({ Bucket: command_options.bucket }))
     return { 'Versioning': command_result.Status }
   },
   deletedObjects: async function (common_options, command_options, save = false) {
     const client = await this.init(common_options)
-    console.log('gettings objects marked for deletion on bucket', command_options.bucket)
+    console.log('getting objects marked for deletion on bucket', command_options.bucket)
     let command_result = null
     let deleted_count = 0
     let versioned_count = 0
@@ -89,6 +90,50 @@ const S3Action = {
         'Verioned Objects': versioned_count 
       }
     }
+  },
+  statistics: async function (common_options, command_options, versioned = false) {
+    const client = await this.init(common_options)
+    console.log('gettings stats for bucket ', command_options.bucket)
+    let iterations = 0
+    let stats = {
+      file_count: 0,
+      total_size: 0,
+      file_with_versions: 0,
+      avg_versions_per_file: 0
+    }
+    let num_versions_per_file = []
+    let options = { 
+      Bucket: command_options.bucket,
+      Prefix: command_options.path,
+      ContinuationToken: '' // NextContinuationToken,
+    }
+    do {
+      iterations ++
+      command_result = await client.send(new ListObjectsV2Command(options))
+      if ( command_result.Contents) {
+        stats.file_count += command_result.KeyCount
+        for(content of command_result.Contents){
+          content.Size ? stats.total_size += content.Size : content.total_size += 0
+          if( versioned === true) { 
+            num_versions_per_file.push(await count_versions(content, client, options)) 
+          }
+        }
+      }
+      if ( command_result.IsTruncated) {
+        [options.ContinuationToken] = command_result.NextContinuationToken
+      }
+    } while (command_result.IsTruncated)
+
+    let sum_versions_in_files = 0
+    for (version in num_versions_per_file) {
+      if (version > 0) {
+        stats.file_with_versions += 1
+        sum_versions_in_files += version
+      }
+    }
+    stats.avg_versions_per_file = sum_versions_in_files / stats.file_with_versions
+    console.log(stats)
+    return stats
   }
 }
 

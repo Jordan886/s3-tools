@@ -34,6 +34,14 @@ async function start () {
       res = await S3Action.deletedObjects(program.opts(), option, option.saveDetails ? true : false )
       console.log(res.Summary)
     })
+    program
+    .command('stats')
+    .requiredOption('--bucket <bucket>', 'the name of the bucket')
+    .option('--path <path>', 'the starting path (careful not use this option with large buckets)')
+    .action(async function (option) {
+      res = await S3Action.statistics(program.opts(), option, option.saveDetails ? true : false )
+      //console.log(res)
+    })
 
   program.parse()  
 }
