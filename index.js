@@ -34,6 +34,16 @@ async function start () {
       res = await S3Action.deletedObjects(program.opts(), option, option.saveDetails ? true : false )
       console.log(res.Summary)
     })
+    program
+    .command('set-retention')
+    .requiredOption('--bucket <bucket>', 'the name of the bucket')
+    .requiredOption('--file <file>', 'the file to update retention')
+    .option('--date <date>', 'the expire retention date')
+    .option('--minutes <minutes>', 'add n minutes from now')
+    .action(async function (option) {
+      res = await S3Action.updateRetention(program.opts(), option)
+      console.log(res)
+    })
 
   program.parse()  
 }

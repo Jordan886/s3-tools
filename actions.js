@@ -1,7 +1,8 @@
 const fs  = require('fs')
 const path = require('path')
 const { parse } = require('json2csv');
-const { S3Client, ListBucketsCommand, GetBucketVersioningCommand, ListObjectVersionsCommand } = require('@aws-sdk/client-s3')
+const { S3Client, ListBucketsCommand, GetBucketVersioningCommand, ListObjectVersionsCommand, PutObjectRetentionCommand } = require('@aws-sdk/client-s3');
+const { version } = require('os');
 
 const S3Action = {
   init: async function (common_options) {
@@ -27,6 +28,23 @@ const S3Action = {
     console.log('gettings stats for bucket ', command_options.bucket)
     command_result = await client.send(new GetBucketVersioningCommand({ Bucket: command_options.bucket }))
     return { 'Versioning': command_result.Status }
+  },
+  updateRetention: async function (common_options, command_options) {
+    const client = await this.init(common_options)
+    const version = await client.send(new ListObjectVersionsCommand({ Bucket: command_options.bucket, Prefix: command_options.file }))
+    const date_to_add = new Date()
+    date_to_add.setMinutes(date_to_add.getMinutes() + Number(command_options.minutes))
+    const options = {
+      Bucket: command_options.bucket,
+      Key: command_options.file,
+      VersionId: version.Versions[0].VersionId,
+      Retention: {
+        RetainUntilDate: date_to_add // new Date(command_options.date)
+      }
+    }
+    console.log('using params:', options)
+    command_result = await client.send(new PutObjectRetentionCommand( options ))
+    return { command_result }
   },
   deletedObjects: async function (common_options, command_options, save = false) {
     const client = await this.init(common_options)
