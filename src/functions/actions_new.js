@@ -88,7 +88,7 @@ const S3ActionNew = {
       const options = {
         Bucket: command.bucket,
         Prefix: command.path,
-        Delimiter: command.path ? '/' : '',
+        Delimiter: command.parallelTree ? '/' : '',
         KeyMarker: command.KeyMarker || '',
         VersionIdMarker: command.VersionIdMarker || ''
       }
