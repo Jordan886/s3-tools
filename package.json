@@ -22,8 +22,11 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.105.0",
+    "@elastic/elasticsearch": "^8.2.1",
     "commander": "^9.3.0",
     "config": "^3.3.6",
-    "json2csv": "^5.0.7"
+    "install": "^0.13.0",
+    "json2csv": "^5.0.7",
+    "npm": "^8.12.1"
   }
 }

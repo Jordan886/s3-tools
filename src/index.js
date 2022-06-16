@@ -1,10 +1,8 @@
-const fs  = require('fs')
-const path = require('path')
-const { parse } = require('json2csv');
 const { program } = require('commander')
-const { S3Action } = require('./actions')
+const { S3Action } = require('./functions/actions')
+const { S3ActionNew } = require('./functions/actions_new')
 
-async function start () {
+async function start() {
   program
     .name('s3-tools')
     .description('various s3 command tools')
@@ -15,35 +13,34 @@ async function start () {
     .requiredOption('--secret-key <secret-key>', 'the secret key')
   program
     .command('bucket-list')
-    .action(async function () {
-      res = await S3Action.bucketList(program.opts())
+    .action(() => {
+      const res = S3Action.bucketList(program.opts())
       console.log(res)
     })
   program
     .command('bucket-versioning-status')
     .requiredOption('--bucket <bucket>', 'the name of the bucket')
-    .action(async function (option) {
-      res = await S3Action.bucketVersioning(program.opts(), option)
+    .action((option) => {
+      const res = S3Action.bucketVersioning(program.opts(), option)
       console.log(res)
     })
   program
-    .command('count-deleted-objects')
-    .requiredOption('--bucket <bucket>', 'the name of the bucket')
-    .option('--save-details <saveDetails>', 'path where to save details in csv format')
-    .action(async function (option) {
-      res = await S3Action.deletedObjects(program.opts(), option, option.saveDetails ? true : false )
-      console.log(res.Summary)
-    })
-    program
     .command('stats')
     .requiredOption('--bucket <bucket>', 'the name of the bucket')
     .option('--path <path>', 'the starting path (careful not use this option with large buckets)')
-    .action(async function (option) {
-      res = await S3Action.statistics(program.opts(), option, option.saveDetails ? true : false )
-      //console.log(res)
+    .action((option) => {
+      S3Action.statistics(program.opts(), option)
     })
-
-  program.parse()  
+  program
+    .command('inventory')
+    .requiredOption('--bucket <bucket>', 'the name of the bucket')
+    .option('--path <path>', 'the starting path (careful not use this option with large buckets)')
+    .option('--elasticsearch-address <address>', 'save result into elasticsearch for analysis')
+    .option('--elasticsearch-apikey <apikey>', 'if auth is enable specify an apikey')
+    .action(async (option) => {
+      await S3ActionNew.inventory(program.opts(), option)
+    })
+  program.parse()
 }
 
 start()
