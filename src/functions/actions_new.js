@@ -2,6 +2,7 @@ const {
   S3Client,
   ListObjectsV2Command,
   ListObjectVersionsCommand,
+  DeletedObject,
 } = require('@aws-sdk/client-s3')
 
 const { elasticSearch } = require('./elasticsearch')
@@ -84,6 +85,10 @@ const S3ActionNew = {
     client_options, command_options, save_action, save_action_options
   ) {
     const init = await this.init(client_options)
+    const file_count = {
+      versioned: 0,
+      deleted: 0
+    }
     const PaginatedResult = async function PaginatedResult(client, command, save, save_options) {
       const options = {
         Bucket: command.bucket,
@@ -98,11 +103,17 @@ const S3ActionNew = {
       if (file_list.Versions || file_list.DeleteMarkers) {
         if (file_list.Versions) {
           console.log(`found ${file_list.Versions.length} file versions`)
+          file_count.versioned += file_list.Versions.length
           save(save_options, file_list.Versions)
         }
         if (file_list.DeleteMarkers) {
           console.log(`found ${file_list.DeleteMarkers.length} file deleted`)
-          save(save_options, file_list.DeleteMarkers)
+          // add deleted marker to distinguish deleted files during analisys
+          const enriched_result = file_list.DeleteMarkers.map(
+            (item) => ({ ...item, Deleted: true })
+          )
+          file_count.deleted += file_list.DeleteMarkers.length
+          save(save_options, enriched_result)
         }
         if (file_list.IsTruncated) {
           console.log('found truncated result')
@@ -115,6 +126,7 @@ const S3ActionNew = {
       // return file_list
     }
     await PaginatedResult(init, command_options, save_action, save_action_options)
+    return file_count
   },
   inventory: async function inventory(client_options, command_options) {
     // initialize elasticsearch
@@ -145,7 +157,10 @@ const S3ActionNew = {
         )
       }))
     }
-    await this.s3ListObjectVersion(client_options, command_options, this.save, save_options)
+    const result = await this.s3ListObjectVersion(
+      client_options, command_options, this.save, save_options
+    )
+    console.log(`done, file count is ${JSON.stringify(result, null, 2)}`)
     // console.log(`the found the following files ${file_list}`)
   },
   // save result in various ways (callback to pass to listobject)
