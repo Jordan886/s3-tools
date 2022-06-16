@@ -95,9 +95,15 @@ const S3ActionNew = {
       console.log('listing with options', options)
       const file_list = await client.send(new ListObjectVersionsCommand(options))
       // console.log(file_list)
-      if (file_list.Versions) {
-        console.log(`found ${file_list.Versions.length} files`)
-        save(save_options, file_list.Versions)
+      if (file_list.Versions || file_list.DeleteMarkers) {
+        if (file_list.Versions) {
+          console.log(`found ${file_list.Versions.length} file versions`)
+          save(save_options, file_list.Versions)
+        }
+        if (file_list.DeleteMarkers) {
+          console.log(`found ${file_list.DeleteMarkers.length} file deleted`)
+          save(save_options, file_list.DeleteMarkers)
+        }
         if (file_list.IsTruncated) {
           console.log('found truncated result')
           const new_options = command
@@ -126,17 +132,20 @@ const S3ActionNew = {
       await elasticSearch.indexBootstrap(save_options)
     }
     // const result = await this.s3ListObjectVersion(client_options, command_options)
-    const folders = await this.s3FindAllPrefixes(client_options, command_options)
     // const result = await this.s3PrefixDebugger(client_options, command_options)
-    console.log('found following folders to process:', folders)
-    await Promise.all(folders.map(async (item) => {
-      console.log(`listing files in ${item}`)
-      const new_options = command_options
-      new_options.path = item
-      await this.s3ListObjectVersion(
-        client_options, new_options, this.save, save_options
-      )
-    }))
+    if (command_options.parallelTree) {
+      const folders = await this.s3FindAllPrefixes(client_options, command_options)
+      console.log('found following folders to process:', folders)
+      await Promise.all(folders.map(async (item) => {
+        console.log(`listing files in ${item}`)
+        const new_options = command_options
+        new_options.path = item
+        await this.s3ListObjectVersion(
+          client_options, new_options, this.save, save_options
+        )
+      }))
+    }
+    await this.s3ListObjectVersion(client_options, command_options, this.save, save_options)
     // console.log(`the found the following files ${file_list}`)
   },
   // save result in various ways (callback to pass to listobject)

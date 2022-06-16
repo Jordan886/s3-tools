@@ -35,6 +35,7 @@ async function start() {
     .command('inventory')
     .requiredOption('--bucket <bucket>', 'the name of the bucket')
     .option('--path <path>', 'the starting path (careful not use this option with large buckets)')
+    .option('--parallel-tree', '*EXPERIMENTAL* run recursive search of all subtrees and run list in parallel mode')
     .option('--elasticsearch-address <address>', 'save result into elasticsearch for analysis')
     .option('--elasticsearch-apikey <apikey>', 'if auth is enable specify an apikey')
     .action(async (option) => {
