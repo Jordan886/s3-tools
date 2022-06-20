@@ -1,0 +1,23 @@
+{
+  "env": {
+    "node": true,
+    "jest": true
+  },
+  "extends": "airbnb-base",
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "rules": {
+    "semi": "off",
+    "camelcase": "off",
+    "object-shorthand": "off",
+    "comma-dangle": ["error", {
+        "arrays": "only-multiline",
+        "objects": "only-multiline"
+    }]
+  }
+}
