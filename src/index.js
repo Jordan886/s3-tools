@@ -6,7 +6,7 @@ async function start() {
   program
     .name('s3-tools')
     .description('various s3 command tools')
-    .version('0.2.0')
+    .version('1.0.0')
     .option('--url <url>', 'url of the s3 storage (default s3.scalablestorage.it)', 's3.scalablestorage.it')
     .option('--region <region>', 'the s3 region (default it-mi1)', 'it-mi1')
     .requiredOption('--access-key <access-key>', 'the access key')
