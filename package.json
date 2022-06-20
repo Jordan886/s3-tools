@@ -4,9 +4,9 @@
   "description": "s3 utility command-line",
   "main": "index.js",
   "scripts": {
-    "build-unix-arm64": "npx caxa --input ./ --output ./bin/s3-tools-unix-arm64 \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/index.js\"",
-    "build-unix-amd64": "npx caxa --input ./ --output ./bin/s3-tools-unix-amd64 \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/index.js\"",
-    "build-win-amd64": "npx caxa --input ./ --output ./bin/s3-tools-win-amd64.exe \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/index.js\""
+    "build-unix-arm64": "npx caxa --input ./ --output ./bin/s3-tools-unix-arm64 \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/src/index.js\"",
+    "build-unix-amd64": "npx caxa --input ./ --output ./bin/s3-tools-unix-amd64 \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/src/index.js\"",
+    "build-win-amd64": "npx caxa --input ./ --output ./bin/s3-tools-win-amd64.exe \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/src/index.js\""
   },
   "repository": {
     "type": "git",
