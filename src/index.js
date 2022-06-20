@@ -1,6 +1,6 @@
 const { program } = require('commander')
 const { S3Action } = require('./functions/actions')
-const { S3ActionNew } = require('./functions/actions_new')
+const { S3Inventory } = require('./functions/inventory')
 
 async function start() {
   program
@@ -25,13 +25,6 @@ async function start() {
       console.log(res)
     })
   program
-    .command('stats')
-    .requiredOption('--bucket <bucket>', 'the name of the bucket')
-    .option('--path <path>', 'the starting path (careful not use this option with large buckets)')
-    .action((option) => {
-      S3Action.statistics(program.opts(), option)
-    })
-  program
     .command('inventory')
     .requiredOption('--bucket <bucket>', 'the name of the bucket')
     .option('--path <path>', 'the starting path (careful not use this option with large buckets)')
@@ -39,7 +32,7 @@ async function start() {
     .option('--elasticsearch-address <address>', 'save result into elasticsearch for analysis')
     .option('--elasticsearch-apikey <apikey>', 'if auth is enable specify an apikey')
     .action(async (option) => {
-      await S3ActionNew.inventory(program.opts(), option)
+      await S3Inventory.inventory(program.opts(), option)
     })
   program.parse()
 }

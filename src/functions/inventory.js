@@ -2,12 +2,11 @@ const {
   S3Client,
   ListObjectsV2Command,
   ListObjectVersionsCommand,
-  DeletedObject,
 } = require('@aws-sdk/client-s3')
 
 const { elasticSearch } = require('./elasticsearch')
 
-const S3ActionNew = {
+const S3Inventory = {
   init: async function init(client_options) {
     const client = new S3Client({
       credentials: {
@@ -137,7 +136,9 @@ const S3ActionNew = {
     if (command_options.elasticsearchAddress) {
       save_options.elasticsearch_enabled = true
       save_options.address = command_options.elasticsearchAddress
-      save_options.indexName = command_options.bucket
+      const now = new Date()
+      const date = now.toISOString().split('T', 1)
+      save_options.indexName = `${command_options.bucket}-${date}`
       if (command_options.elasticsearchApikey) {
         save_options.apiKey = command_options.elasticsearchApikey
       }
@@ -171,4 +172,4 @@ const S3ActionNew = {
   }
 }
 
-module.exports = { S3ActionNew }
+module.exports = { S3Inventory }

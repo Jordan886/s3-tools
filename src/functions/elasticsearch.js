@@ -29,52 +29,7 @@ const elasticSearch = {
   },
   indexBootstrap: async function indexBootstrap(options) {
     const elasticClient = await this.init(options)
-    try {
-      await elasticClient.ilm.putLifecycle({
-        name: `${options.indexName}_retention`,
-        policy: {
-          phases: {
-            hot: {
-              min_age: '0ms',
-              actions: {
-                rollover: {
-                  max_age: '1d'
-                },
-                set_priority: {
-                  priority: 100
-                }
-              }
-            },
-            delete: {
-              min_age: options.retention || '30d',
-              actions: {
-                delete: { }
-              }
-            }
-          }
-        }
-      })
-    } catch (err) {
-      console.log(err)
-      throw new Error('Error in boostrap: create/update lifecycle policy')
-    }
-    try {
-      await elasticClient.indices.putTemplate({
-        name: `${options.indexName}_template`,
-        create: false,
-        index_patterns: [`${options.indexName}-*`],
-        settings: {
-          number_of_shards: options.numShards || 1,
-          number_of_replicas: options.Replicas || 1,
-          'index.lifecycle.name': `${options.indexName}_retention`,
-          'index.lifecycle.rollover_alias': options.indexName
-        }
-      })
-    } catch (err) {
-      console.log(err)
-      throw new Error('Error in boostrap: create/update index template')
-    }
-    const bootstrap_index_name = `${options.indexName}-000001`
+    const bootstrap_index_name = `${options.indexName}`
     const bootstrap_index_exist = await elasticClient.indices.exists({
       index: bootstrap_index_name
     })
@@ -82,10 +37,9 @@ const elasticSearch = {
       try {
         await elasticClient.indices.create({
           index: bootstrap_index_name,
-          aliases: {
-            [options.indexName]: {
-              is_write_index: true
-            }
+          settings: {
+            number_of_shards: options.numShards || 1,
+            number_of_replicas: options.Replicas || 0
           }
         })
       } catch (err) {
@@ -95,12 +49,23 @@ const elasticSearch = {
       }
     }
     console.log('bootstrap terminated successfully')
+    return bootstrap_index_name
   },
   saveResults: async function saveResults(options, body) {
     const elasticClient = await this.init(options)
     // const bulk = body.flatMap((doc) => [{ index: { _index: options.indexName } }, doc])
+    // add new key "prefix" for better analysis
+    const enriched_body = body.map((item) => {
+      const new_item = item
+      if (new_item.Key) {
+        // build prefix by taking first part of the path without filename
+        const folder = item.Key.slice(0, new_item.Key.lastIndexOf('/'))
+        new_item.Prefix = folder
+      }
+      return new_item
+    })
     await elasticClient.helpers.bulk({
-      datasource: body,
+      datasource: enriched_body,
       refreshOnCompletion: true,
       onDocument() {
         return {
